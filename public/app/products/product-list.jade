@@ -1,0 +1,138 @@
+.container-fluid.top-padding-med
+    h1
+        i.fa.fa-television
+        | &nbsp Danh sách sản phẩm
+    table.table.table-hover.table-striped.table-condensed.border-table(ng-table="dataTable" data-template-header="customHeader.html")
+        colgroup
+            col(width="10.5%")
+            col(width="21.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="5.5%" ng-if="identity.currentUser.isAdmin()")
+        tr.ng-table-group(ng-repeat-start="group in $groups")
+            td(colspan="{{$columns.length-(identity.currentUser.isAdmin()?6:6)}}")
+                a(href="" ng-click="group.$hideRows = !group.$hideRows")
+                    span.glyphicon(ng-class="{ 'glyphicon-chevron-right': group.$hideRows, 'glyphicon-chevron-down': !group.$hideRows }")
+                    strong(ng-bind-html="manufactures | name:group.value")
+            td(colspan="{{$columns.length-(identity.currentUser.isAdmin()?3:3)}}")
+                strong.text-primary(ng-bind-html="GetSummOfAges(group)| number")
+        tr(ng-hide="group.$hideRows" ng-repeat="product in group.data" ng-repeat-end)
+            td(data-title="'Nhà cung cấp'", data-sortable="'manufactureId'", data-groupable="'manufactureId'", ng-bind-html="manufactures | name:product.manufactureId", ng-if="false")
+            td(data-title="'Thương hiệu'", data-sortable="'brandId'", ng-bind-html="brands | name:product.brandId")
+            td(data-title="'Tên sản phẩm'", data-sortable="'name'", ng-bind-html="product.name")
+            td(data-title="'Số lượng'", data-sortable="'quantity'", ng-bind-html="product.quantity | number")
+            td(data-title="'Giá'", data-sortable="'price'", ng-bind-html="(product.price | currency:'':3)+'&#8363;'")
+            td(data-title="'Ngày tạo'", data-sortable="'dateCreate'", am-time-ago="product.dateCreate", uib-tooltip="{{product.dateCreate | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(data-title="'Ngày Sửa'", data-sortable="'dateModify'", am-time-ago="product.dateModify", uib-tooltip="{{product.dateModify | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td.text-center(ng-if="identity.currentUser.isAdmin()")
+                a.btn.btn-primary.btn-xs(ng-click="openModel(product)")
+                    i.fa.fa-pencil-square-o
+                    | &nbsp Sửa
+                | &nbsp;
+                a.btn.btn-danger.btn-xs(ng-click="confirmModel(product)")
+                    i.fa.fa-trash
+                    | &nbsp Xóa
+script(type="text/ng-template" id="customHeader.html")
+    demo-custom-group-row
+    ng-table-sorter-row.border-table
+script(type="text/ng-template" id="customGroupRow.html")
+    tr.ng-table-group-header(ng-if="params.hasGroup()" ng-show="$groupRow.show")
+        th(colspan="{{getVisibleColumns().length}}")
+            ul.nav.nav-pills.pull-left
+                li(role="presentation" ng-repeat="group in getGroupables()" ng-class="isSelectedGroup(group) ? 'active' : ''")
+                    a(href="" ng-click="groupBy(group)")
+                        strong(ng-bind-html="getGroupTitle(group)")
+                        | &nbsp;
+                        span.fa(ng-if="isSelectedGroup(group)" ng-class="{'fa-sort-amount-asc': params.hasGroup($selGroup, 'asc'), 'fa-sort-amount-desc': params.hasGroup($selGroup, 'desc')}")
+            a.btn.btn-success.pull-right(ng-click="openModel()" style="margin-left: 15px;")
+                i.fa.fa-plus
+                | &nbsp Tạo mới
+            form.pull-right(name="searchForm")
+                .input-group
+                    span.input-group-addon
+                        | Ngoại trừ...
+                        input(type="checkbox", name="inverted", ng-model="isInvertedSearch")
+                    input.form-control(type="text", placeholder="Tìm kiếm", name="searchTerm", ng-model="globalSearchTerm", my-enter="applyGlobalSearch(searchForm)")
+                    span.input-group-btn
+                        button.btn.btn-default(ng-click="applyGlobalSearch(searchForm)" ng-disabled="searchForm.$invalid")
+                            span.glyphicon.glyphicon-search
+
+script(type="text/ng-template" id="myModalContent")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        form.form-horizontal(name="productForm")
+            .form-group(ng-class="{ 'has-error': productForm.manufactureId.$touched && productForm.manufactureId.$invalid }")
+                label.col-md-2.control-label Nhà cung cấp
+                .col-md-10
+                    ui-select(ng-model="manufactureId.selected", on-select="clearName()" )
+                        ui-select-match
+                            span(ng-bind-html="$select.selected.name")
+                        ui-select-choices(repeat="item in (manufactures | filter: $select.search) track by item._id")
+                            h4(ng-bind-html="item.name")
+                            p
+                                strong(ng-bind-html="item.taxCode +' | '+ item.contactPerson")
+            .form-group(ng-class="{ 'has-error': productForm.brandId.$touched && productForm.brandId.$invalid }")
+                label.col-md-2.control-label Thương hiệu
+                .col-md-10
+                    ui-select(ng-model="brandId.selected")
+                        ui-select-match
+                            span(ng-bind-html="$select.selected.name")
+                        ui-select-choices(repeat="item in (brands | filter: $select.search) track by item._id")
+                            h4(ng-bind-html="item.name")
+
+            .form-group(ng-class="{ 'has-error': productForm.name.$touched && productForm.name.$invalid }")
+                label.col-md-2.control-label Tên sản phẩm
+                .col-md-10
+                    input.form-control(name="name", type="text", placeholder="Tên sản phẩm của cửa hàng", ng-model="name",nameproduct="", manufacture="{{manufactureId.selected._id}}", required="", my-enter="submitModal()")
+                    .help-block(ng-messages="productForm.name.$error" ng-if="productForm.name.$invalid")
+                        p.text-danger(ng-message="nameproduct") Tên sản phẩm này đã được sử dụng
+                    .help-block(ng-messages="productForm.name.$error" ng-if="productForm.name.$touched && productForm.name.$invalid")
+                        p(ng-message="required") Không được để trống Tên sản phẩm!
+
+            .form-group(ng-class="{ 'has-error': productForm.quantity.$touched && productForm.quantity.$invalid }")
+                label.col-md-2.control-label Số lượng hiện có
+                .col-md-10
+                    input.form-control(name="quantity", type="number", placeholder="Số lượng hiện có của cửa hàng", ng-model="quantity", required="", my-enter="submitModal()")
+                    .help-block(ng-messages="productForm.quantity.$error" ng-if="productForm.quantity.$touched && productForm.quantity.$invalid")
+                        p(ng-message="required") Không được để trống Số lượng sản phẩm!
+                        p(ng-message="number") Chỉ được nhập số cho Số lượng sản phẩm!
+
+            .form-group(ng-class="{ 'has-error': productForm.price.$touched && productForm.price.$invalid }")
+                label.col-md-2.control-label Giá bán lẻ
+                .col-md-10
+                    input.form-control(name="price", type="number", placeholder="Tự động nhân thêm 1000", ng-model="price", required="", my-enter="submitModal()")
+                    .span.text-success(ng-bind-html="(price | currency:'':3)+'&#8363;'", ng-if="!productForm.price.$touched && !productForm.price.$invalid")
+                    .help-block(ng-messages="productForm.price.$error" ng-if="productForm.price.$touched && productForm.price.$invalid")
+                        p(ng-message="required") Không được để trống Giá bán lẻ!
+                        p(ng-message="number") Chỉ được nhập số cho Giá bán lẻ!
+
+    .modal-footer
+        button.btn.btn-primary(ng-click="submitModal()" ng-disabled="productForm.$invalid")
+            i.fa.fa-floppy-o
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát
+script(type="text/ng-template" id="myModalConfirm")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        p
+            | Sản phẩm: &nbsp
+            strong(ng-bind-html="modalContent.name")
+            | &nbsp thuộc thương hiệu: &nbsp
+            strong(ng-bind-html="brands | name:modalContent.brandId")
+            | &nbsp ở của Nhà cung cấp: &nbsp
+            strong(ng-bind-html="manufactures | name:modalContent.manufactureId")
+            | &nbsp có số lượng là: &nbsp
+            strong(ng-bind-html="modalContent.quantity")
+    .modal-footer
+        button.btn.btn-danger(ng-click="submitModal()")
+            i.fa.fa-times
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát

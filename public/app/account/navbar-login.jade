@@ -1,0 +1,31 @@
+ul.nav.navbar-nav.navbar-right(ng-controller="mvNavBarLoginCtrl" style="margin-right: 15px;")
+    li(ng-hide="identity.isAuthenticated()")
+        a(href="/signup")
+            i.fa.fa-user-plus
+            | &nbsp Đăng ký
+    li(ng-show="identity.currentUser.isAdmin()")
+        a(href="/admin/users")
+            i.fa.fa-users
+            | &nbsp Quản lý người dùng
+    form.navbar-form.navbar-left(ng-hide="identity.isAuthenticated()")
+        .form-group
+            input.form-control(placeholder="Tên tài khoản",ng-model="username")
+        .form-group
+            input.form-control(type="password", placeholder="Mật khẩu",ng-model="password")
+        button.btn.btn-primary(ng-click="signin(username, password)")
+            i.fa.fa-sign-in
+            | &nbsp Đăng nhập
+    li.dropdown(dropdown="" ng-show="identity.isAuthenticated()")
+        a.dropdown-toggle(href="", data-toggle="dropdown" dropdown-toggle="")
+            i.fa.fa-user
+            | &nbsp {{identity.currentUser.fullName}}
+            b.caret
+        ul.dropdown-menu
+            li
+                a(href="/profile")
+                    i.fa.fa-user
+                    | &nbsp Hồ sơ
+            li
+                a(href="", ng-click="signout()")
+                    i.fa.fa-sign-out
+                    | &nbsp Đăng xuất

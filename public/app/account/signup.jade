@@ -1,0 +1,53 @@
+.container
+    .well
+        form.form-horizontal(name="signupForm")
+            fieldset
+                legend Tạo tài khoản mới
+                .form-group(ng-class="{ 'has-error': signupForm.username.$touched && signupForm.username.$invalid }")
+                    label.col-md-2.control-label Tên tài khoản
+                    .col-md-10
+                        input.form-control(name="username", type="text", placeholder="Tên tài khoản của bạn", ng-model="username", required, data-username="", my-enter="signup()")
+                        .help-block(ng-messages="signupForm.username.$error" ng-if="signupForm.username.$invalid")
+                            p.text-danger(ng-message="username") Tên đăng nhập đã có người sử dụng
+                        .help-block(ng-messages="signupForm.username.$error" ng-if="signupForm.username.$touched && signupForm.username.$invalid")
+                            p(ng-message="required") Không được để trống Tên tài khoản!
+
+                .form-group(ng-class="{ 'has-error': signupForm.email.$touched && signupForm.email.$invalid }")
+                    label.col-md-2.control-label Địa chỉ email
+                    .col-md-10
+                        input.form-control(name="email", type="email", placeholder="Email của bạn", ng-model="email", required, data-emaila="", my-enter="signup()")
+                        .help-block(ng-messages="signupForm.email.$error" ng-if="signupForm.email.$invalid")
+                            p.text-danger(ng-message="emaila") Email này đã có người sử dụng
+                        .help-block(ng-messages="signupForm.email.$error" ng-if="signupForm.email.$touched && signupForm.email.$invalid")
+                            p(ng-message="required") Không được để trống Địa chỉ email!
+                            p(ng-message="email") Hãy nhập đúng địa chỉ Email của bạn!
+
+
+                .form-group(ng-class="{ 'has-error': signupForm.password.$touched && signupForm.password.$invalid }")
+                    label.col-md-2.control-label Mật khẩu
+                    .col-md-10
+                        input.form-control(name="password", type="password", placeholder="Mật khẩu của bạn", ng-model="password", required, my-enter="signup()")
+                        .help-block(ng-messages="signupForm.password.$error" ng-if="signupForm.password.$touched && signupForm.password.$invalid")
+                            p(ng-message="required") Không được để trống Mật khẩu!
+
+                .form-group(ng-class="{ 'has-error': signupForm.fname.$touched && signupForm.fname.$invalid }")
+                    label.col-md-2.control-label Họ và tên
+                    .col-md-10
+                        input.form-control(name="fname", type="text", placeholder="Họ và tên của bạn", ng-model="fname", required, my-enter="signup()")
+                        .help-block(ng-messages="signupForm.fname.$error" ng-if="signupForm.fname.$touched && signupForm.fname.$invalid")
+                            p(ng-message="required") Không được để trống Họ và tên!
+
+                .form-group(ng-class="{ 'has-error': signupForm.telephone.$touched && signupForm.telephone.$invalid }")
+                    label.col-md-2.control-label Số điện thoại
+                    .col-md-10
+                        input.form-control(name="telephone", type="text", placeholder="Số điện thoại của bạn", ng-model="telephone", required, my-enter="signup()", ui-mask="999.999.9999?9?9", data-ui-mask-placeholder="", data-ui-mask-placeholder-char="space")
+                        .help-block(ng-messages="signupForm.telephone.$error" ng-if="signupForm.telephone.$touched && signupForm.telephone.$invalid")
+                            p(ng-message="required") Không được để trống Tên tài khoản!
+                            p(ng-message="number") Số điện thoại chỉ được nhập số!
+
+                .form-group
+                    .col-md-10.col-md-offset-2
+                        .pull-right
+                            button.btn.btn-primary(ng-click="signup()", ng-disabled="signupForm.$invalid") Submit
+                            | &nbsp;
+                            a.btn.btn-default(href="/") Cancel

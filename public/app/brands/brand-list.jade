@@ -1,0 +1,90 @@
+.container-fluid.top-padding-med
+    h1
+        i.fa.fa-industry
+        | &nbsp Danh sách thương hiệu
+    table.table.table-hover.table-striped.table-condensed.border-table(ng-table="dataTable", data-template-header="customHeader.html")
+        colgroup
+            col(width="10.5%")
+            col(width="21.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="5.5%" ng-if="identity.currentUser.isAdmin()")
+        tr.ng-table-group(ng-if="false", ng-repeat-start="group in $groups")
+        tr(ng-hide="group.$hideRows" ng-repeat="brand in group.data" ng-repeat-end)
+            td(data-title="'Thương hiệu'", data-sortable="'name'", ng-bind-html="brand.name")
+            td(data-title="'Ghi chú'", data-sortable="'note'",  ng-bind-html="brand.note")
+            td(data-title="'Ngày tạo'", data-sortable="'dateCreate'", am-time-ago="brand.dateCreate", uib-tooltip="{{brand.dateCreate | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(data-title="'Ngày Sửa'", data-sortable="'dateModify'", am-time-ago="brand.dateModify", uib-tooltip="{{brand.dateModify | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(ng-if="identity.currentUser.isAdmin()")
+                a.btn.btn-primary.btn-xs(ng-click="openModel(brand)")
+                    i.fa.fa-pencil-square-o
+                    | &nbsp Sửa
+                | &nbsp;
+                a.btn.btn-danger.btn-xs(ng-click="confirmModel(brand)")
+                    i.fa.fa-trash
+                    | &nbsp Xóa
+
+script(type="text/ng-template" id="customHeader.html")
+    demo-custom-group-row
+    ng-table-sorter-row.border-table
+script(type="text/ng-template" id="customGroupRow.html")
+    tr.ng-table-group-header(ng-if="params.hasGroup()" ng-show="$groupRow.show")
+        th(colspan="{{getVisibleColumns().length}}")
+            ul.nav.nav-pills.pull-left
+                li(role="presentation" ng-repeat="group in getGroupables()" ng-class="isSelectedGroup(group) ? 'active' : ''")
+                    a(href="" ng-click="groupBy(group)")
+                        strong(ng-bind-html="getGroupTitle(group)")
+                        | &nbsp;
+                        span.fa(ng-if="isSelectedGroup(group)" ng-class="{'fa-sort-amount-asc': params.hasGroup($selGroup, 'asc'), 'fa-sort-amount-desc': params.hasGroup($selGroup, 'desc')}")
+            a.btn.btn-success.pull-right(ng-click="openModel()" style="margin-left: 15px;")
+                i.fa.fa-plus
+                | &nbsp Tạo mới
+            form.pull-right(name="searchForm")
+                .input-group
+                    span.input-group-addon
+                        | Ngoại trừ...
+                        input(type="checkbox", name="inverted", ng-model="isInvertedSearch")
+                    input.form-control(type="text", placeholder="Tìm kiếm", name="searchTerm", ng-model="globalSearchTerm", my-enter="applyGlobalSearch(searchForm)")
+                    span.input-group-btn
+                        button.btn.btn-default(ng-click="applyGlobalSearch(searchForm)" ng-disabled="searchForm.$invalid")
+                            span.glyphicon.glyphicon-search
+
+script(type="text/ng-template" id="myModalContent")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        form.form-horizontal(name="brandForm")
+            .form-group(ng-class="{ 'has-error': brandForm.name.$touched && brandForm.name.$invalid }")
+                label.col-md-2.control-label Thương hiệu
+                .col-md-10
+                    input.form-control(name="name", type="text", placeholder="Nhà cung cấp mà cửa hàng nhập", ng-model="name", required="", brand="", my-enter="submitModal()")
+                    .help-block(ng-messages="brandForm.name.$error" ng-if="brandForm.name.$invalid")
+                        p.text-danger(ng-message="brand") Thương hiệu này đã được sử dụng
+                    .help-block(ng-messages="brandForm.name.$error" ng-if="brandForm.name.$touched && manufactureForm.name.$invalid")
+                        p(ng-message="required") Không được để trống Thương hiệu!
+
+            .form-group
+                label.col-md-2.control-label Ghi chú
+                .col-md-10
+                    textarea.form-control(name="note", placeholder="Ghi chú thương hiệu", ng-model="note", my-enter="submitModal()")
+
+            .clearfix
+    .modal-footer
+        button.btn.btn-primary(ng-click="submitModal()", ng-disabled="brandForm.$invalid")
+            i.fa.fa-floppy-o
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát
+script(type="text/ng-template" id="myModalConfirm")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        p(ng-bind-html="modalContent")
+    .modal-footer
+        button.btn.btn-danger(ng-click="submitModal()")
+            i.fa.fa-times
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát

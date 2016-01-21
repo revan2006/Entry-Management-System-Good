@@ -1,0 +1,39 @@
+{
+  "name": "MEAN-Stack",
+  "version": "0.0.0",
+  "authors": [
+    "Nguyen Ngoc Duc <ducnn.230288@gmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "public/vendor",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "toastr": "~2.1.2",
+    "angular": "~1.4.8",
+    "angular-resource": "~1.4.8",
+    "angular-route": "~1.4.8",
+    "bootstrap": "~3.3.6",
+    "angular-mocks": "~1.4.8",
+    "angular-sanitize": "~1.4.8",
+    "angular-animate": "~1.4.8",
+    "angular-bootstrap": "~0.14.3",
+    "angular-moment": "~0.10.3",
+    "moment": "~2.10.6",
+    "angular-messages": "~1.4.8",
+    "angular-ui-mask": "~1.6.6",
+    "font-awesome": "Font-Awesome#~4.5.0",
+    "ui-select": "angular-ui-select#~0.13.2",
+    "ng-table": "1.0.0-beta.9"
+  }
+}

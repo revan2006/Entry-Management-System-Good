@@ -1,0 +1,277 @@
+.container-fluid.top-padding-med
+    h1
+        i.fa.fa-cubes
+        | &nbsp Danh sách nhập hàng
+
+    table.table.table-hover.table-striped.table-condensed.border-table(ng-table="dataTable", data-template-header="customHeader.html")
+        colgroup
+            col(width="10.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="21.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="5.5%" ng-if="identity.currentUser.isAdmin()")
+        tr.ng-table-group(ng-repeat-start="group in $groups")
+            td(colspan="{{$columns.length-(identity.currentUser.isAdmin()?7:7)}}")
+                a(href="" ng-click="group.$hideRows = !group.$hideRows")
+                    span.glyphicon(ng-class="{ 'glyphicon-chevron-right': group.$hideRows, 'glyphicon-chevron-down': !group.$hideRows }")
+                    strong(ng-bind-html="group.value| amDateFormat: 'dddd DD-MM-YYYY' ")
+            td(colspan="{{$columns.length-(identity.currentUser.isAdmin()?2:2)}}")
+                strong.text-primary(ng-bind-html="(GetSummOfAges(group)| currency:'':3)+'&#8363;'")
+        tr(ng-hide="group.$hideRows" ng-repeat="importGood in group.data" ng-repeat-end)
+            td(data-title="'Nhà cung cấp'", data-sortable="'manufactureId'", data-filter="{ 'manufactureId': 'number' }", ng-bind-html="manufactures | name:importGood.manufactureId")
+            td(data-title="'Ngày nhập hàng'", data-sortable="'dayImport'", data-groupable="'dayImport'", data-filter="{ 'dayImport': 'number' }", ng-bind-html="importGood.dayImport | date: 'dd-MM-yyyy' ", ng-if="false")
+            td(data-title="'Số hóa đơn'", data-sortable="'numberBill'", data-filter="{ 'numberBill': 'number' }", ng-bind-html="importGood.numberBill")
+            td(data-title="'Tổng chi phí'", data-sortable="'totalCost'", data-filter="{ 'totalCost': 'number' }", ng-bind-html="(importGood.totalCost | currency:'':3)+'&#8363;'")
+            td(data-title="'Người tạo'", data-sortable="'userId'", data-filter="{ 'userId': 'number' }", ng-bind-html="users | fullName:importGood.userId")
+            td(data-title="'Ghi chú'", data-sortable="'note'", data-filter="{ 'note': 'text' }", ng-bind-html="importGood.note")
+            td(data-title="'Ngày tạo'", data-sortable="'dateCreate'", am-time-ago="importGood.dateCreate", uib-tooltip="{{importGood.dateCreate | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(data-title="'Ngày Sửa'", data-sortable="'dateModify'", am-time-ago="importGood.dateModify", uib-tooltip="{{importGood.dateModify | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(ng-if="identity.currentUser.isAdmin()")
+                a.btn.btn-primary.btn-xs(ng-click="openModel(importGood)")
+                    i.fa.fa-pencil-square-o
+                    | &nbsp Sửa
+                | &nbsp;
+                a.btn.btn-danger.btn-xs(ng-click="confirmModel(importGood)")
+                    i.fa.fa-trash
+                    | &nbsp Xóa
+                | &nbsp;
+                a.btn.btn-warning.btn-xs(ng-click="detailModel(importGood)")
+                    i.fa.i.fa.fa-eye
+                    | &nbsp Xem
+
+script(type="text/ng-template" id="customHeader.html")
+    demo-custom-group-row
+    ng-table-sorter-row.border-table
+script(type="text/ng-template" id="customGroupRow.html")
+    tr.ng-table-group-header(ng-if="params.hasGroup()" ng-show="$groupRow.show")
+        th(colspan="{{getVisibleColumns().length}}")
+            ul.nav.nav-pills.pull-left
+                li(role="presentation" ng-repeat="group in getGroupables()" ng-class="isSelectedGroup(group) ? 'active' : ''")
+                    a(href="" ng-click="groupBy(group)")
+                        strong(ng-bind-html="getGroupTitle(group)")
+                        | &nbsp;
+                        span.fa(ng-if="isSelectedGroup(group)" ng-class="{'fa-sort-amount-asc': params.hasGroup($selGroup, 'asc'), 'fa-sort-amount-desc': params.hasGroup($selGroup, 'desc')}")
+            a.btn.btn-success.pull-right(ng-click="openModel()" style="margin-left: 15px;", ng-if="hideModal")
+                i.fa.fa-plus
+                | &nbsp Tạo mới
+            form.pull-right(name="searchForm", ng-if="hideModal")
+                .input-group
+                    span.input-group-addon
+                        | Ngoại trừ...
+                        input(type="checkbox", name="inverted", ng-model="isInvertedSearch")
+                    input.form-control(type="text", placeholder="Tìm kiếm ghi chú", name="searchTerm", ng-model="globalSearchTerm", my-enter="applyGlobalSearch(searchForm)")
+                    span.input-group-btn
+                        button.btn.btn-default(ng-click="applyGlobalSearch(searchForm)" ng-disabled="searchForm.$invalid")
+                            span.glyphicon.glyphicon-search
+            form.pull-right(name="searchFormModal", ng-if="!hideModal")
+                .input-group
+                    span.input-group-addon
+                        | Ngoại trừ...
+                        input(type="checkbox", name="invertedModal", ng-model="isInvertedSearchModal")
+                    input.form-control(type="text", placeholder="Tìm kiếm ghi chú", name="searchTermModal", ng-model="globalSearchTermModal", my-enter="applyGlobalSearchModal(searchFormModal)")
+                    span.input-group-btn
+                        button.btn.btn-default(ng-click="applyGlobalSearchModal(searchFormModal)" ng-disabled="searchForm.$invalid")
+                            span.glyphicon.glyphicon-search
+
+script(type="text/ng-template" id="myModalContent")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        form.form-horizontal(name="importGoodForm")
+            .form-group(ng-class="{ 'has-error': importGoodForm.manufactureId.$touched && importGoodForm.manufactureId.$invalid }")
+                label.col-md-2.control-label Nhà cung cấp
+                .col-md-10
+                    ui-select(ng-model="manufactureId.selected", on-select="selectProduct()")
+                        ui-select-match
+                            span(ng-bind-html="$select.selected.name")
+                        ui-select-choices(repeat="item in (manufactures | filter: $select.search) track by item._id")
+                            h4(ng-bind-html="item.name")
+                            p
+                                strong(ng-bind-html="item.taxCode +' | '+ item.contactPerson")
+
+            .form-group(ng-class="{ 'has-error': importGoodForm.dayImport.$touched && importGoodForm.dayImport.$invalid }")
+                label.col-md-2.control-label Ngày nhập hàng
+                .col-md-10
+                    p.input-group
+                        input.form-control(name="dayImport", type="text", placeholder="Vui lòng chọn ngày", ng-model="dayImport", ng-click="openDatePicker()", uib-datepicker-popup="dd/MM/yyyy", data-is-open="popup1.opened", ng-required="true", data-close-text="Close", readonly)
+                        span.input-group-btn
+                            button.btn.btn-default(type="button", ng-click="openDatePicker()")
+                                i.fa.fa-calendar
+                    .help-block(ng-messages="importGoodForm.dayImport.$error" ng-if="importGoodForm.dayImport.$touched && importGoodForm.dayImport.$invalid")
+                        p(ng-message="required") Không được để trống Số hóa đơn!
+
+            .form-group(ng-class="{ 'has-error': importGoodForm.numberBill.$touched && importGoodForm.numberBill.$invalid }")
+                label.col-md-2.control-label Số hóa đơn
+                .col-md-10
+                    input.form-control(name="numberBill", type="text", placeholder="Số hóa đơn nhập hàng", ng-model="numberBill", required="", vnumberbill="", my-enter="submitModal()", )
+                    .help-block(ng-messages="importGoodForm.numberBill.$error" ng-if="importGoodForm.numberBill.$invalid")
+                        p.text-danger(ng-message="vnumberbill") Hóa đơn này đã được sử dụng
+                    .help-block(ng-messages="importGoodForm.numberBill.$error" ng-if="importGoodForm.numberBill.$touched && importGoodForm.numberBill.$invalid")
+                        p(ng-message="required") Không được để trống Số hóa đơn!
+
+            .form-group
+                label.col-md-2.control-label Tổng chi phí
+                .col-md-10
+                    input.form-control(name="totalCost", type="number", placeholder="Chí phí của lần nhập hàng này", ng-model="totalCost", value="{{sumTotalCost()}}", readonly="", my-enter="submitModal()")
+                    .span.text-success(ng-bind-html="(totalCost | currency:'':3)+'&#8363;'")
+
+            .form-group
+                label.col-md-2.control-label Ghi chú
+                .col-md-10
+                    textarea.form-control(name="note", placeholder="Ghi chú", ng-model="note", rows="5", , my-enter="submitModal()")
+            .panel.panel-primary(ng-if="importGoodEdit")
+                .panel-heading
+                    strong Những sản phẩm được nhập
+                .panel-body
+                    div.form-group(ng-repeat="product in productsImport")
+                        ng-form(name="productForm")
+                            .col-md-4(ng-class="{ 'has-error': productForm.nameProduct.$touched && productForm.nameProduct.$invalid }")
+                                label.control-label Tên sản phẩm
+                                ui-select(ng-model="product.productId.selected")
+                                    ui-select-match
+                                        span(ng-bind-html="$select.selected.name")
+                                    ui-select-choices(repeat="item in (productsSelect | filter: $select.search) track by item._id")
+                                        h4(ng-bind-html="item.name")
+                                        p
+                                            strong(ng-bind-html="brands | name:item.brandId")
+                                            | &nbsp|&nbsp
+                                            strong(ng-bind-html="manufactures | name:item.manufactureId")
+
+                            .col-md-2(ng-class="{ 'has-error': productForm.quantityImport.$touched && productForm.quantityImport.$invalid }")
+                                label.control-label Số lương nhập
+                                input.form-control(name="quantityImport", type="number", placeholder="Số lượng sản phẩm đang nhập", ng-model="product.quantityImport", required="", my-enter="submitModal()")
+                                .help-block(ng-messages="productForm.quantityImport.$error" ng-if="productForm.quantityImport.$touched && productForm.quantityImport.$invalid")
+                                    p(ng-message="required") Không được để trống Số lương nhập!
+                                    p(ng-message="number") Số lương nhập chỉ được nhập số!
+
+                            .col-md-2(ng-class="{ 'has-error': productForm.priceEach.$touched && productForm.priceEach.$invalid }")
+                                label.control-label Giá nhập
+                                input.form-control(name="priceEach", type="number", placeholder="Giá bán của sản phẩm đang nhập", ng-model="product.priceEach", required="", my-enter="submitModal()")
+                                .span.text-success(ng-bind-html="(product.priceEach | currency:'':3)+'&#8363;'", ng-if="!productForm.priceEach.$touched && !productForm.priceEach.$invalid")
+                                .help-block(ng-messages="productForm.priceEach.$error" ng-if="productForm.priceEach.$touched && productForm.priceEach.$invalid")
+                                    p(ng-message="required") Không được để trống Giá nhập!
+                                    p(ng-message="number") Giá nhập chỉ được nhập số!
+
+                            .col-md-2
+                                label.control-label Thành tiền
+                                input.form-control(name="totalPriceProduct", type="number", placeholder="Số tài khoản của nhà cung cấp", ng-model="product.totalPrice", value="{{product.priceEach * product.quantityImport}}" my-enter="submitModal()", readonly="")
+                                .span.text-success(ng-bind-html="((product.priceEach * product.quantityImport) | currency:'':3)+'&#8363;'")
+
+                            .col-md-2
+                                label.control-label.col-xs-12 &nbsp;
+                                button.col-xs-12.btn.btn-default(ng-click="removeNewProduct(product)")
+                                    i.fa.fa-times-circle
+                                    | &nbsp Xóa
+            button.pull-right.btn.btn-default(ng-click="addNewProduct()" ng-if="importGoodEdit")
+                i.fa.fa-plus-circle
+                | &nbsp Thêm sản phẩm nhập
+            .clearfix
+    .modal-footer
+        button.btn.btn-primary(ng-click="submitModal()" ng-disabled="importGoodForm.$invalid")
+            i.fa.fa-floppy-o
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát
+script(type="text/ng-template" id="myModalConfirm")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        p
+            | Hóa đơn: &nbsp
+            strong(ng-bind-html="modalContent.numberBill")
+            | &nbsp ở của Nhà cung cấp: &nbsp
+            strong(ng-bind-html="manufactures | name:modalContent.manufactureId")
+            | &nbsp với Chí phí là: &nbsp
+            strong(ng-bind-html="modalContent.totalCost")
+    .modal-footer
+        button.btn.btn-danger(ng-click="submitModal()")
+            i.fa.fa-times
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát
+
+script(type="text/ng-template" id="myModalDetail")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+        strong.text-success(ng-bind-html="(sumTotalCost() | currency:'':3)+'&#8363;'")
+    .modal-body
+        table.table.table-hover.table-striped.table-condensed.border-table(ng-table="dataTableModal", data-template-header="customHeader.html")
+            colgroup
+                col(width="21.5%")
+                col(width="6.5%")
+                col(width="6.5%")
+                col(width="6.5%")
+                col(width="6.5%")
+                col(width="5.5%")
+            tr.ng-table-group(ng-if="false", ng-repeat-start="group in $groups")
+            tr(ng-hide="group.$hideRows" ng-repeat="dataimportdetail in group.data" ng-repeat-end)
+                td(data-title="'ID'", data-sortable="'_id'", ng-bind-html="dataimportdetail._id", ng-if="false")
+                td(data-title="'Đợt nhập'", data-sortable="'importGoodsId'", ng-bind-html="dataimportdetail.importGoodsId", ng-if="false")
+                td(data-title="'Sản phẩm'", data-sortable="'productId'",  ng-bind-html="products | name:dataimportdetail.productId")
+                td(data-title="'Số lượng'", data-sortable="'quantityImport'", ng-bind-html="dataimportdetail.quantityImport | number")
+                td(data-title="'Giá nhập'", data-sortable="'priceEach'", ng-bind-html="(dataimportdetail.priceEach | currency:'':3)+'&#8363;'")
+                td(data-title="'Thành tiền'", data-sortable="'totalPrice'",  ng-bind-html="(dataimportdetail.totalPrice | currency:'':3)+'&#8363;'")
+                td(data-title="'Ngày tạo'", data-sortable="'dateCreate'", am-time-ago="dataimportdetail.dateCreate", uib-tooltip="{{dataimportdetail.dateCreate | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+                td.text-center
+                    a.btn.btn-danger.btn-xs(ng-click="deleteModel(dataimportdetail)")
+                        i.fa.fa-trash
+                        | &nbsp Xóa
+        .clearfix
+        .panel.panel-primary(style="margin-top:15px;")
+            .panel-heading
+                strong Những sản phẩm được nhập
+            .panel-body
+                div.form-group(ng-repeat="product in productsImport")
+                    ng-form(name="productForm")
+                        .col-md-4(ng-class="{ 'has-error': productForm.nameProduct.$touched && productForm.nameProduct.$invalid }")
+                            label.control-label Tên sản phẩm
+                            ui-select(ng-model="product.productId.selected")
+                                ui-select-match
+                                    span(ng-bind-html="$select.selected.name")
+                                ui-select-choices(repeat="item in (productsSelect | filter: $select.search) track by item._id")
+                                    h4(ng-bind-html="item.name")
+                                    p
+                                        strong(ng-bind-html="brands | name:item.brandId")
+                                        | &nbsp|&nbsp
+                                        strong(ng-bind-html="manufactures | name:item.manufactureId")
+
+                        .col-md-2(ng-class="{ 'has-error': productForm.quantityImport.$touched && productForm.quantityImport.$invalid }")
+                            label.control-label Số lương nhập
+                            input.form-control(name="quantityImport", type="number", placeholder="Số lượng sản phẩm đang nhập", ng-model="product.quantityImport", required="", my-enter="submitModal()")
+                            .help-block(ng-messages="productForm.quantityImport.$error" ng-if="productForm.quantityImport.$touched && productForm.quantityImport.$invalid")
+                                p(ng-message="required") Không được để trống Số lương nhập!
+                                p(ng-message="number") Số lương nhập chỉ được nhập số!
+
+                        .col-md-2(ng-class="{ 'has-error': productForm.priceEach.$touched && productForm.priceEach.$invalid }")
+                            label.control-label Giá nhập
+                            input.form-control(name="priceEach", type="number", placeholder="Giá bán của sản phẩm đang nhập", ng-model="product.priceEach", required="", my-enter="submitModal()")
+                            .span.text-success(ng-bind-html="(product.priceEach | currency:'':3)+'&#8363;'", ng-if="!productForm.priceEach.$touched && !productForm.priceEach.$invalid")
+                            .help-block(ng-messages="productForm.priceEach.$error" ng-if="productForm.priceEach.$touched && productForm.priceEach.$invalid")
+                                p(ng-message="required") Không được để trống Giá nhập!
+                                p(ng-message="number") Giá nhập chỉ được nhập số!
+
+                        .col-md-2
+                            label.control-label Thành tiền
+                            input.form-control(name="totalPriceProduct", type="number", placeholder="Số tài khoản của nhà cung cấp", ng-model="product.totalPrice", value="{{product.priceEach * product.quantityImport}}" my-enter="submitModal()", readonly="")
+                            .span.text-success(ng-bind-html="((product.priceEach * product.quantityImport) | currency:'':3)+'&#8363;'")
+                        .col-md-2
+                            label.control-label.col-xs-12 &nbsp;
+                            button.col-xs-12.btn.btn-default(ng-click="removeNewProduct(product)")
+                                i.fa.fa-times-circle
+                                | &nbsp Xóa
+        button.pull-right.btn.btn-default(ng-click="addNewProduct()")
+            i.fa.fa-plus-circle
+            | &nbsp Thêm sản phẩm nhập
+        .clearfix
+    .modal-footer
+        button.btn.btn-success(ng-click="submitModal()")
+            i.fa.fa-times
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát

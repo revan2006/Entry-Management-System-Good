@@ -1,0 +1,33 @@
+extends ../includes/layout
+block main-content
+    .navbar.navbar-inverse.navbar-fixed-top
+        .navbar-header
+            button(type="button" class="navbar-toggle" ng-init="navCollapsed = true" ng-click="navCollapsed = !navCollapsed")
+                span.sr-only Toggle navigation
+                span.icon-bar
+                span.icon-bar
+                span.icon-bar
+            a.navbar-brand.text-center(href="/") EMSG
+        .navbar-collapse.collapse(ng-controller="mvNavBarLoginCtrl" collapse="navCollapsed")
+            ul.nav.navbar-nav(ng-show="identity.isAuthenticated()")
+                li
+                    a(href='/products')
+                        i.fa.fa-television
+                        | &nbsp Sản phẩm
+                li
+                    a(href='/manufactures')
+                        i.fa.fa-truck
+                        | &nbsp Nhà cung cấp
+                li
+                    a(href='/brands')
+                        i.fa.fa-industry
+                        | &nbsp Thương hiệu
+                li
+                    a(href='/importgoods')
+                        i.fa.fa-cubes
+                        | &nbsp Nhập hàng
+            div(ng-include="'/partials/account/navbar-login'")
+    section(ng-view)
+
+    footer.container.text-center
+        p &copy; 2016 EMSG - Entry Management System Goods.

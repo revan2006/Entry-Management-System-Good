@@ -1,0 +1,57 @@
+.container-fluid
+    h1
+        i.fa.fa-users
+        | &nbsp Danh sách tài khoản
+    table.table.table-hover.table-striped.table-condensed.border-table(ng-table="dataTable", data-template-header="customHeader.html")
+        colgroup
+            col(width="10.5%")
+            col(width="21.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+        tr.ng-table-group(ng-if="false", ng-repeat-start="group in $groups")
+        tr(ng-hide="group.$hideRows" ng-repeat="user in group.data" ng-repeat-end)
+            td(data-title="'Họ và tên'", data-sortable="'fullName'", ng-bind-html="user.fullName")
+            td(data-title="'Tài khoản'", data-sortable="'username'", ng-bind-html="user.username")
+            td(data-title="'Địa chỉ Email'", data-sortable="'email'", ng-bind-html="user.email")
+            td(data-title="'Số điện thoại'", data-sortable="'telephone'", ng-bind-html="user.telephone")
+            td(data-title="'Ngày tạo'", data-sortable="'dateCreate'", am-time-ago="user.dateCreate", uib-tooltip="{{user.dateCreate | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(data-title="'Ngày Sửa'", data-sortable="'dateModify'", am-time-ago="user.dateModify", uib-tooltip="{{user.dateModify | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td.text-right
+                button.btn.btn-success.btn-xs(ng-show="user.allow", ng-click="userAllow(false,user)")
+                    i.fa.fa-eye
+                    | &nbsp Đang Hoạt động
+                button.btn.btn-warning.btn-xs(ng-hide="user.allow", ng-click="userAllow(true,user)")
+                    i.fa.fa-eye-slash
+                    | &nbsp Đang Chặn
+                | &nbsp
+                button.btn.btn-danger.btn-xs(ng-click="userDelete(user)")
+                    i.fa.fa-user-times
+                    | &nbsp Xóa
+
+script(type="text/ng-template" id="customHeader.html")
+    demo-custom-group-row
+    ng-table-sorter-row.border-table
+script(type="text/ng-template" id="customGroupRow.html")
+    tr.ng-table-group-header(ng-if="params.hasGroup()" ng-show="$groupRow.show")
+        th(colspan="{{getVisibleColumns().length}}")
+            ul.nav.nav-pills.pull-left
+                li(role="presentation" ng-repeat="group in getGroupables()" ng-class="isSelectedGroup(group) ? 'active' : ''")
+                    a(href="" ng-click="groupBy(group)")
+                        strong(ng-bind-html="getGroupTitle(group)")
+                        | &nbsp;
+                        span.fa(ng-if="isSelectedGroup(group)" ng-class="{'fa-sort-amount-asc': params.hasGroup($selGroup, 'asc'), 'fa-sort-amount-desc': params.hasGroup($selGroup, 'desc')}")
+            a.btn.btn-success.pull-right(ng-click="openModel()" style="margin-left: 15px;")
+                i.fa.fa-plus
+                | &nbsp Tạo mới
+            form.pull-right(name="searchForm")
+                .input-group
+                    span.input-group-addon
+                        | Ngoại trừ...
+                        input(type="checkbox", name="inverted", ng-model="isInvertedSearch")
+                    input.form-control(type="text", placeholder="Tìm kiếm", name="searchTerm", ng-model="globalSearchTerm", my-enter="applyGlobalSearch(searchForm)")
+                    span.input-group-btn
+                        button.btn.btn-default(ng-click="applyGlobalSearch(searchForm)" ng-disabled="searchForm.$invalid")
+                            span.glyphicon.glyphicon-search

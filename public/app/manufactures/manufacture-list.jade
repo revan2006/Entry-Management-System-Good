@@ -1,0 +1,153 @@
+.container-fluid.top-padding-med
+    h1
+        i.fa.fa-truck
+        | &nbsp Danh sách nhà cung cấp
+    table.table.table-hover.table-striped.table-condensed.border-table(ng-table="dataTable", data-template-header="customHeader.html")
+        colgroup
+            col(width="10.5%")
+            col(width="21.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="6.5%")
+            col(width="5.5%" ng-if="identity.currentUser.isAdmin()")
+        tr.ng-table-group(ng-if="false", ng-repeat-start="group in $groups")
+        tr(ng-hide="group.$hideRows" ng-repeat="manufacture in group.data" ng-repeat-end)
+            td(data-title="'Nhà cung cấp'", data-sortable="'name'", ng-bind-html="manufacture.name")
+            td(data-title="'Địa chỉ'", data-sortable="'address'",  ng-bind-html="manufacture.address")
+            td(data-title="'Mã số thuế'", data-sortable="'taxCode'", ng-bind-html="manufacture.taxCode")
+            td(data-title="'Người liên hệ'", data-sortable="'contactPerson'", ng-bind-html="manufacture.contactPerson")
+            td(data-title="'Số điện thoại'", data-sortable="'telephone'",  ng-bind-html="manufacture.telephone | tel ")
+            td(data-title="'Tài khoản ngân hàng'", data-sortable="'bank'")
+             p.last-margin(ng-repeat="bank in manufacture.banks")
+                strong(ng-bind-html="bank.nameBank")
+                | :&nbsp
+                span(ng-bind-html="bank.idBank")
+            td(data-title="'Ngày tạo'", data-sortable="'dateCreate'", am-time-ago="manufacture.dateCreate", uib-tooltip="{{manufacture.dateCreate | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(data-title="'Ngày Sửa'", data-sortable="'dateModify'", am-time-ago="manufacture.dateModify", uib-tooltip="{{manufacture.dateModify | date: 'dd-MM-yyyy hh:mm:ss' }}", data-tooltip-append-to-body="true")
+            td(ng-if="identity.currentUser.isAdmin()")
+                a.btn.btn-primary.btn-xs(ng-click="openModel(manufacture)")
+                    i.fa.fa-pencil-square-o
+                    | &nbsp Sửa
+                | &nbsp;
+                a.btn.btn-danger.btn-xs(ng-click="confirmModel(manufacture)")
+                    i.fa.fa-trash
+                    | &nbsp Xóa
+
+script(type="text/ng-template" id="customHeader.html")
+    demo-custom-group-row
+    ng-table-sorter-row.border-table
+script(type="text/ng-template" id="customGroupRow.html")
+    tr.ng-table-group-header(ng-if="params.hasGroup()" ng-show="$groupRow.show")
+        th(colspan="{{getVisibleColumns().length}}")
+            ul.nav.nav-pills.pull-left
+                li(role="presentation" ng-repeat="group in getGroupables()" ng-class="isSelectedGroup(group) ? 'active' : ''")
+                    a(href="" ng-click="groupBy(group)")
+                        strong(ng-bind-html="getGroupTitle(group)")
+                        | &nbsp;
+                        span.fa(ng-if="isSelectedGroup(group)" ng-class="{'fa-sort-amount-asc': params.hasGroup($selGroup, 'asc'), 'fa-sort-amount-desc': params.hasGroup($selGroup, 'desc')}")
+            a.btn.btn-success.pull-right(ng-click="openModel()" style="margin-left: 15px;")
+                i.fa.fa-plus
+                | &nbsp Tạo mới
+            form.pull-right(name="searchForm")
+                .input-group
+                    span.input-group-addon
+                        | Ngoại trừ...
+                        input(type="checkbox", name="inverted", ng-model="isInvertedSearch")
+                    input.form-control(type="text", placeholder="Tìm kiếm", name="searchTerm", ng-model="globalSearchTerm", my-enter="applyGlobalSearch(searchForm)")
+                    span.input-group-btn
+                        button.btn.btn-default(ng-click="applyGlobalSearch(searchForm)" ng-disabled="searchForm.$invalid")
+                            span.glyphicon.glyphicon-search
+
+script(type="text/ng-template" id="myModalContent")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        form.form-horizontal(name="manufactureForm")
+            .form-group(ng-class="{ 'has-error': manufactureForm.name.$touched && manufactureForm.name.$invalid }")
+                label.col-md-2.control-label Nhà cung cấp
+                .col-md-10
+                    input.form-control(name="name", type="text", placeholder="Nhà cung cấp mà cửa hàng nhập", ng-model="name", required="", manufacture="", my-enter="submitModal()")
+                    .help-block(ng-messages="manufactureForm.name.$error" ng-if="manufactureForm.name.$invalid")
+                        p.text-danger(ng-message="manufacture") Nhà cung cấp này đã được sử dụng
+                    .help-block(ng-messages="manufactureForm.name.$error" ng-if="manufactureForm.name.$touched && manufactureForm.name.$invalid")
+                        p(ng-message="required") Không được để trống Nhà cung cấp!
+
+            .form-group(ng-class="{ 'has-error': manufactureForm.address.$touched && manufactureForm.address.$invalid }")
+                label.col-md-2.control-label Địa chỉ
+                .col-md-10
+                    input.form-control(name="address", type="text", placeholder="Địa chỉ của nhà cung cấp", ng-model="address", required="", my-enter="submitModal()")
+                    .help-block(ng-messages="manufactureForm.address.$error" ng-if="manufactureForm.address.$touched && manufactureForm.address.$invalid")
+                        p(ng-message="required") Không được để trống Địa chỉ!
+
+            .form-group(ng-class="{ 'has-error': manufactureForm.taxCode.$touched && manufactureForm.taxCode.$invalid }")
+                label.col-md-2.control-label Mã số thuế
+                .col-md-10
+                    input.form-control(name="taxCode", type="number", placeholder="Mã số thuế của nhà cung cấp", ng-model="taxCode", required="", my-enter="submitModal()")
+                    .help-block(ng-messages="manufactureForm.taxCode.$error" ng-if="manufactureForm.taxCode.$touched && manufactureForm.taxCode.$invalid")
+                        p(ng-message="required") Không được để trống Mã số thuế!
+                        p(ng-message="number") Mã số thuế chỉ được nhập số!
+
+            .form-group(ng-class="{ 'has-error': manufactureForm.contactPerson.$touched && manufactureForm.contactPerson.$invalid }")
+                label.col-md-2.control-label Người liên hệ
+                .col-md-10
+                    input.form-control(name="contactPerson", type="text", placeholder="Người liên hệ của nhà cung cấp", ng-model="contactPerson", required="", my-enter="submitModal()")
+                    .help-block(ng-messages="manufactureForm.contactPerson.$error" ng-if="manufactureForm.contactPerson.$touched && manufactureForm.contactPerson.$invalid")
+                        p(ng-message="required") Không được để trống Người liên hệ!
+
+            .form-group(ng-class="{ 'has-error': manufactureForm.telephone.$touched && manufactureForm.telephone.$invalid }")
+                label.col-md-2.control-label Số điện thoại
+                .col-md-10
+                    input.form-control(name="telephone", type="text", placeholder="Số điện thoại của nhà cung cấp", ng-model="telephone", required="", ui-mask="999.999.9999?9?9", data-ui-mask-placeholder="", data-ui-mask-placeholder-char="space", my-enter="submitModal()")
+                    .help-block(ng-messages="manufactureForm.telephone.$error" ng-if="manufactureForm.telephone.$touched && manufactureForm.telephone.$invalid" )
+                        p(ng-message="required") Không được để trống Số điện thoại!
+
+            .panel.panel-info
+                .panel-heading
+                    strong Ngân hàng
+                .panel-body
+                    div.form-group(ng-repeat="bank in banks")
+                        ng-form(name="bankForm")
+                            .col-md-5(ng-class="{ 'has-error': bankForm.nameBank.$touched && bankForm.nameBank.$invalid }")
+                                label.control-label Tên ngân hàng
+                                input.form-control(name="nameBank", type="", placeholder="Tên ngân hàng của nhà cung cấp", ng-model="bank.nameBank", required="", my-enter="submitModal()")
+                                .help-block(ng-messages="bankForm.nameBank.$error" ng-if="bankForm.nameBank.$touched && bankForm.nameBank.$invalid")
+                                    p(ng-message="required") Không được để trống Tài khoản ngân hàng!
+
+                            .col-md-5(ng-class="{ 'has-error': bankForm.idBank.$touched && bankForm.idBank.$invalid }")
+                                label.control-label Số tài khoản
+                                input.form-control(name="idBank", type="number", placeholder="Số tài khoản của nhà cung cấp", ng-model="bank.idBank", required="", my-enter="submitModal()")
+                                .help-block(ng-messages="bankForm.idBank.$error" ng-if="bankForm.idBank.$touched && bankForm.idBank.$invalid")
+                                    p(ng-message="required") Không được để trống Tài khoản ngân hàng!
+                                    p(ng-message="number") Mã số thuế chỉ được nhập số!
+
+                            .col-md-2
+                                label.control-label.col-xs-12 &nbsp;
+                                button.col-xs-12.btn.btn-default(ng-click="removeNewBank(bank)")
+                                    i.fa.fa-times-circle
+                                    | &nbsp Xóa
+            button.pull-right.btn.btn-default(ng-click="addNewBank()")
+                i.fa.fa-plus-circle
+                | &nbsp Thêm ngân hàng
+            .clearfix
+    .modal-footer
+        button.btn.btn-primary(ng-click="submitModal()" ng-disabled="manufactureForm.$invalid")
+            i.fa.fa-floppy-o
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát
+script(type="text/ng-template" id="myModalConfirm")
+    .modal-header
+        h3.modal-title(ng-bind-html="modalTitle")
+    .modal-body
+        p(ng-bind-html="modalContent")
+    .modal-footer
+        button.btn.btn-danger(ng-click="submitModal()")
+            i.fa.fa-times
+            | &nbsp {{modalButton}}
+        button.btn.btn-warning(ng-click="cancel()")
+            i.fa.fa-ban
+            | &nbsp Thoát
